@@ -62,6 +62,21 @@ func (session *Session) Get(context *gin.Context, key string) (string, error) {
 }
 
 func (session *Session) Delete(context *gin.Context, key string) error {
+	token, err := context.Cookie(key)
+
+	if err != nil {
+		return err
+	}
+
+	err = session.redisconn.Del(session.ctx, token)
+
+	if err != nil {
+		return err
+	}
+
+	context.SetCookie(key, "", -1, "/trash", "www.trash.com", true, true)
+
+	return nil
 }
 
 func (session *Session) randomToken(bits int) string {
