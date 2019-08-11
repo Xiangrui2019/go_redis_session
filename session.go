@@ -22,8 +22,22 @@ func NewSession(redisoptions redis.Options) *Session {
 	}
 }
 
-func (session *Session) Set(context *gin.Context, key string, value string) error {
+func (session *Session) Set(context *gin.Context, key string, value string, expire time.Duration) error {
+	token := session.randomToken(128)
 
+	err := session.redisconn.Set(session.ctx, &redis.Item{
+		Key:   token,
+		Value: []byte(value),
+		TTL:   int32(expire),
+	})
+
+	if err != nil {
+		return err
+	}
+
+	context.SetCookie(key, value, int(expire), "/", "", false, true)
+
+	return nil
 }
 
 func (session *Session) Get(context *gin.Context, key string) (string, error) {
