@@ -2,6 +2,7 @@ package go_redis_session
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"math/rand"
@@ -41,7 +42,26 @@ func (session *Session) Set(context *gin.Context, key string, value string, expi
 }
 
 func (session *Session) Get(context *gin.Context, key string) (string, error) {
+	token, err := context.Cookie(key)
 
+	if err != nil {
+		return "", err
+	}
+
+	item, err := session.redisconn.Get(session.ctx, token)
+
+	if err != nil {
+		return "", err
+	}
+
+	if string(item.Value) == "" {
+		return "", errors.New("not found.")
+	}
+
+	return string(item.Value), nil
+}
+
+func (session *Session) Delete(context *gin.Context, key string) error {
 }
 
 func (session *Session) randomToken(bits int) string {
