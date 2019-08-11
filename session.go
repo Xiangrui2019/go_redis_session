@@ -2,8 +2,9 @@ package go_redis_session
 
 import (
 	"context"
+	"time"
 
-	"crypto/rand"
+	"math/rand"
 
 	"github.com/gin-gonic/gin"
 	"github.com/xiangrui2019/redis"
@@ -30,10 +31,11 @@ func (session *Session) Get(context *gin.Context, key string) (string, error) {
 }
 
 func (session *Session) randomToken(bits int) string {
+	seeder := rand.New(rand.NewSource(time.Now().UnixNano()))
 	const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	result := make([]byte, bits)
 	for i := range result {
-		result[i] = chars[rand.Intn(len(chars))]
+		result[i] = chars[seeder.Intn(len(chars))]
 	}
 	return string(result)
 }
